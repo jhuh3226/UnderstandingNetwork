@@ -23,6 +23,8 @@ let creds = {
 let topic = 'jReadings';
 let localDiv, remoteDiv;
 
+let msg = null;
+
 function setup() {
    // Create an MQTT client:
    client = new Paho.MQTT.Client(broker.hostname, Number(broker.port), creds.clientID);
@@ -62,12 +64,16 @@ function onConnectionLost(response) {
 // called when a message arrives
 function onMessageArrived(message) {
    // get the payload string and make it a JSON object:
-   let msg = JSON.parse(message.payloadString);
+   msg = JSON.parse(message.payloadString);
    // console.log(message.payloadString);
    // how to read each value, this case it's lux
-   console.log(msg.lux);
+   console.log(msg);
+   console.log(db);
 
-// iterate over the elements of the JSON object:
+   // sending data to firebase
+   InsertData(msg);
+
+   // iterate over the elements of the JSON object:
    for (var key in msg) {
       // If there is not an HTML element with the same ID:
       if (document.getElementById(key) === null) {
@@ -87,6 +93,20 @@ function onMessageArrived(message) {
          thisDiv.innerHTML = key + ': ' + msg[key];
       }
    }
+}
+
+function InsertData(msg) {
+   set(ref(db, "uid/" + msg.uid), {
+      lux: msg.lux,
+      ct: msg.ct
+   })
+      // make sure data is stored sucessfully
+      .then(() => {
+         console.log("data is stored succesfully");
+      })
+      .catch((error) => {
+         console.log("unsuccessful, error" + error);
+      });
 }
 
 // This is a listener for the page to load.
