@@ -23,25 +23,6 @@ let creds = {
 let topic = 'jReadings';
 let localDiv, remoteDiv;
 
-// firebase
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-   apiKey: "AIzaSyBGsCWIXEBk7RIcntg2_69_mqupIBUZgm0",
-   authDomain: "understandingnetwork-90aa1.firebaseapp.com",
-   databaseURL: "https://understandingnetwork-90aa1-default-rtdb.firebaseio.com",
-   projectId: "understandingnetwork-90aa1",
-   storageBucket: "understandingnetwork-90aa1.appspot.com",
-   messagingSenderId: "264597897286",
-   appId: "1:264597897286:web:7fa981ee396002f8978a47",
-   measurementId: "G-GLEVG4B9TV"
-};
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-// set database variable
-var database = firebase.database();
-
-
 function setup() {
    // Create an MQTT client:
    client = new Paho.MQTT.Client(broker.hostname, Number(broker.port), creds.clientID);
@@ -86,7 +67,7 @@ function onMessageArrived(message) {
    // how to read each value, this case it's lux
    console.log(msg.lux);
 
-   // iterate over the elements of the JSON object:
+// iterate over the elements of the JSON object:
    for (var key in msg) {
       // If there is not an HTML element with the same ID:
       if (document.getElementById(key) === null) {
