@@ -1,24 +1,26 @@
 {
-  "name": "getting-started-with-firebase-9",
+  "name": "mqtt-clinet-firebase",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "12.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --mode=development"
+    "build": "webpack"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/iamshaunjp/Getting-Started-with-Firebase-9.git"
-  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/iamshaunjp/Getting-Started-with-Firebase-9/issues"
+  "dependencies": {
+    "fetch": "^1.1.0",
+    "firebase": "^9.5.0",
+    "mqtt": "^4.2.6",
+    "node": "^17.1.0"
   },
-  "homepage": "https://github.com/iamshaunjp/Getting-Started-with-Firebase-9#readme",
   "devDependencies": {
-    "webpack": "^5.60.0",
+    "webpack": "^5.64.2",
     "webpack-cli": "^4.9.1"
   }
 }
