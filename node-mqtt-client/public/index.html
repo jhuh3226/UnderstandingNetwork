@@ -36,15 +36,13 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
-    // firebase.initializeApp(firebaseConfig);
 
-    import {getDatabase, ref, set, child, update, remove}
-    from "https://www.gstatic.com/firebasejs/9.5.0/firebase-database.js"
+    import {getDatabase, ref, set, child, update, remove} from "https://www.gstatic.com/firebasejs/9.5.0/firebase-database.js"
 
     const db = getDatabase();
     window.db = db;
   </script>
-  <script src="script.js"></script>
+  <script src="script.mjs"></script>
 </body>
 
 </html>
