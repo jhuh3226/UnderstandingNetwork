@@ -36,7 +36,6 @@ app.use(cors({ origin: true }));
 // Routes
 app.get('/hello-world', (req, res) => {
     return res.status(200).send('Hi!!!!!!');
-
 });
 
 // POST (create)
@@ -62,6 +61,31 @@ app.post('/api/create', (req, res) => {
 });
 
 // GET
+app.get('/api/read/:id', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            const document = db.collection('f008d1cb466c').doc(req.params.id);
+            let uid = await document.get();
+            let response = uid.data();
+
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+
+});
+
+function getLatest (req, res) {
+    // get what the client wants from the request
+    // form it into a fireBase query
+    // query fireBase
+    // when the response comes in, respond to the web client
+  }
 
 
 // export the api to firebase cloud functions
