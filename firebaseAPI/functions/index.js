@@ -10,100 +10,48 @@
 // subscribe to MQTT channels
 // when data arrives, send to FireBase
 
+// log = document.getElementById('log');
+
 // include the MQTT library:
 const mqtt = require("mqtt");
-
-// MQTT broker details:
-let broker = {
-    hostname: 'public.cloud.shiftr.io',
-    port: 443
+// the broker you plan to connect to.
+// transport options:
+// 'mqtt', 'mqtts', 'tcp', 'tls', 'ws', or 'wss':
+const broker = "mqtts://public.cloud.shiftr.io";
+// client options:
+const options = {
+    clientId: "jRead",
+    username: "public",
+    password: "public"
 };
+// topic and message payload:
+let myTopic = "jReadings";
 
-// MQTT client:
-let client;
-// client credentials:
-let creds = {
-    clientID: 'htmlClient',
-    userName: 'public',
-    password: 'public'
-}
-// topic to subscribe to when you connect to the broker:
-let topic = 'jReadings';
-let localDiv, remoteDiv;
-
-let msg = null;
-
-function setup() {
-    // Create an MQTT client:
-    client = new Paho.MQTT.Client(broker.hostname, Number(broker.port), creds.clientID);
-    // set callback handlers for the client:
-    client.onConnectionLost = onConnectionLost;
-    client.onMessageArrived = onMessageArrived;
-    // connect to the MQTT broker:
-    client.connect(
-        {
-            onSuccess: onConnect,       // callback function for when you connect
-            userName: creds.userName,   // username
-            password: creds.password,   // password
-            useSSL: true                // use SSL
-        }
-    );
-    // add handles for the divs:
-    localDiv = document.getElementById('local');
-    remoteDiv = document.getElementById('remote');
+// connect handler:
+function setupClient() {
+    // read all the subtopics:
+    client.subscribe(myTopic);
+    // set a handler for when new messages arrive:
+    client.on("message", readMqttMessage);
 }
 
-
-// called when the client connects
-function onConnect() {
-    localDiv.innerHTML = 'client is connected to '
-        + broker.hostname + '<br>and subscribed to '
-        + topic;
-    client.subscribe(topic);
+// new message handler:
+function readMqttMessage(topic, message) {
+    // message is a Buffer, so convert to a string:
+    let msgString = message.toString();
+    console.log(msgString);
+    // send it:
 }
 
-// called when the client loses its connection
-function onConnectionLost(response) {
-    if (response.errorCode !== 0) {
-        localDiv.innerHTML = 'Connection Lost:' + response.errorMessage;
-    }
+function storageResponse(error, headings, body) {
+    // print the responses from the server, if you need them:
+    // console.log(headings);
+    // console.log(body.toString());
 }
 
-// called when a message arrives
-function onMessageArrived(message) {
-    // get the payload string and make it a JSON object:
-    msg = JSON.parse(message.payloadString);
-    // console.log(message.payloadString);
-    // how to read each value, this case it's lux
-    console.log(msg);
+let client = mqtt.connect(broker, options);
+client.on("connect", setupClient);
 
-    /* firebase */
-    // sending data to firebase
-    // addDocuments(msg);
-    // getting data from firebase
-    // getDocuments();
-
-    // iterate over the elements of the JSON object:
-    for (var key in msg) {
-        // If there is not an HTML element with the same ID:
-        if (document.getElementById(key) === null) {
-            // create create one and give it this ID:
-            let thisDiv = document.createElement('div');
-            thisDiv.id = key;
-            // create text with the key and value:
-            let textNode = document.createTextNode(key + ': ' + msg[key]);
-            // add the text to the element and add it to the HTML:
-            thisDiv.append(textNode);
-            document.body.append(thisDiv);
-            // console.log(textNode);
-        } else {
-            // if there's already an element with this ID,
-            // just update it:
-            let thisDiv = document.getElementById(key);
-            thisDiv.innerHTML = key + ': ' + msg[key];
-        }
-    }
-}
 
 // firebase client = express server
 // when web client requests data,
@@ -122,6 +70,9 @@ admin.initializeApp({
 
 const express = require("express");
 const app = express();
+// serve static files from /public
+// / is a root directory
+app.use("/", express.static("public"));
 const db = admin.firestore();
 
 const cors = require("cors");
@@ -129,6 +80,7 @@ app.use(cors({ origin: true }));
 
 // Routes
 app.get('/hello-world', (req, res) => {
+
     return res.status(200).send('Hi!!!!!!');
 });
 
@@ -154,6 +106,10 @@ app.post('/api/create', (req, res) => {
 
 });
 
+// GET 
+// When button pushed, get all the data from date __
+// app.get('api/read')
+
 // GET
 app.get('/api/read/:id', (req, res) => {
     (async () => {
@@ -162,6 +118,8 @@ app.get('/api/read/:id', (req, res) => {
             const document = db.collection('f008d1cb466c').doc(req.params.id);
             let uid = await document.get();
             let response = uid.data();
+
+            // log.innerHTML = response;
 
             return res.status(200).send(response);
         }
@@ -184,3 +142,4 @@ function getLatest(req, res) {
 
 // export the api to firebase cloud functions
 exports.app = functions.https.onRequest(app);
+// app.listen(process.env.PORT || 8080);
