@@ -1,0 +1,18 @@
+{
+  "name": "firebaseapi3",
+  "version": "1.0.0",
+  "description": "understanding network project using firebase",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mqtt": "^4.2.8",
+    "node": "^17.1.0",
+    "nodemon": "^2.0.15"
+  }
+}

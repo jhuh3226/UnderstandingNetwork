@@ -34,6 +34,8 @@ const db = admin.firestore();
 const cors = require("cors");
 app.use(cors({ origin: true }));
 
+
+
 // Routes
 app.get('/hello-world', (req, res) => {
 
@@ -41,14 +43,16 @@ app.get('/hello-world', (req, res) => {
 });
 
 // POST (create)
+// Have to seperate for each Uid
 app.post('/api/create', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
         try {
             await db.collection('f008d1cb466c').doc('/' + req.body.id + '/')
                 .create({
-                    ct: 1000,
-                    lux: 2000
+                    ct: req.body.ct,
+                    lux: req.body.lux,
+                    time: req.body.time
                 })
 
             return res.status(200).send('Data sent');
@@ -97,6 +101,7 @@ function getLatest(req, res) {
     // when the response comes in, respond to the web client
 }
 
+// mqtt server
 // mqtt client ---------------------------------------------------------------------------------------------
 // subscribe to MQTT channels
 // when data arrives, send to FireBase
@@ -130,6 +135,7 @@ function readMqttMessage(topic, message) {
     let msgString = message.toString();
     console.log(msgString);
     // send it:
+    // sendToFirestore(msgString.ct, msgString.lux, msgString.time);
 }
 
 function storageResponse(error, headings, body) {
@@ -140,7 +146,6 @@ function storageResponse(error, headings, body) {
 
 let client = mqtt.connect(broker, options);
 client.on("connect", setupClient);
-
 
 // export the api to firebase cloud functions
 exports.app = functions.https.onRequest(app);
