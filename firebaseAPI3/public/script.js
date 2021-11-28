@@ -14,7 +14,7 @@ btnFetch.addEventListener('click', () => {
 
 // on btn click get the latest data from the firestore
 async function getData() {
-    const response = await fetch(firebaseLink+"/api/read/1FLdpl2o5kiF4WXY8TCX");
+    const response = await fetch(firebaseLink+"/api/read/swcorner/all");
     // const response = await fetch("")
     const data = await response.json();
     log.innerHTML = data;

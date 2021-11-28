@@ -34,21 +34,70 @@ const db = admin.firestore();
 const cors = require("cors");
 app.use(cors({ origin: true }));
 
-
-
 // Routes
 app.get('/hello-world', (req, res) => {
 
     return res.status(200).send('Hi!!!!!!');
 });
 
-// POST (create)
-// Have to seperate for each Uid
-app.post('/api/create', (req, res) => {
+// POST time only after certain time
+
+// POST (create), to NEcorner
+// Have to seperate for each Uid 
+app.post('/api/create/necorner', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
         try {
-            await db.collection('f008d1cb466c').doc('/' + req.body.id + '/')
+            await db.collection('NEcorner').doc('/' + req.body.id + '/')
+                .create({
+                    ct: req.body.ct,
+                    lux: req.body.lux,
+                    time: req.body.time
+                    // createdAt: timestamp
+                })
+
+            return res.status(200).send('Data sent');
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+
+});
+
+// POST (create), to NEcorner
+// Have to seperate for each Uid 
+app.post('/api/create/nwcorner', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            await db.collection('NWcorner').doc('/' + req.body.id + '/')
+                .create({
+                    ct: req.body.ct,
+                    lux: req.body.lux,
+                    time: req.body.time
+                })
+
+            return res.status(200).send('Data sent');
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+
+});
+
+// POST (create), to NEcorner
+// Have to seperate for each Uid 
+app.post('/api/create/swcorner', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            await db.collection('SWcorner').doc('/' + req.body.id + '/')
                 .create({
                     ct: req.body.ct,
                     lux: req.body.lux,
@@ -67,10 +116,22 @@ app.post('/api/create', (req, res) => {
 });
 
 // GET 
-// When button pushed, get all the data from date __
-// app.get('api/read')
+// app.get('/api/read', (req, res) => {
+//     (async () => {
+//         // telling express to access to a collection and add new id and data
+//         try {
 
-// GET
+//             return res.status(200).send(response);
+//         }
+
+//         catch (error) {
+//             console.log(error);
+//             return res.status(500).send(error);
+//         }
+//     })();
+// });
+
+// GET certain data
 app.get('/api/read/:id', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
@@ -92,7 +153,38 @@ app.get('/api/read/:id', (req, res) => {
 
 });
 
-// get all the data
+// GET
+// When button pushed, get all the data from each category
+app.get('/api/read/swcorner/all', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            let query = db.collection('SWcorner').orderBy("time", "asc");   // get all the data sorted by time
+            let response = [];
+
+            await query.get().then(querySnapshot => {
+                let docs = querySnapshot.docs;   // the result of the query
+
+                for (let doc of docs) {
+                    const selectedItem = {
+                        id: doc.id,
+                        time: doc.data().time,
+                        lux: doc.data().lux,
+                        ct: doc.data().ct
+                    };
+                    response.push(selectedItem);
+                }
+                return response; // each then should return a value
+            })
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+});
 
 function getLatest(req, res) {
     // get what the client wants from the request
@@ -101,51 +193,8 @@ function getLatest(req, res) {
     // when the response comes in, respond to the web client
 }
 
-// mqtt server
-// mqtt client ---------------------------------------------------------------------------------------------
-// subscribe to MQTT channels
-// when data arrives, send to FireBase
-
-// include the MQTT library:
-const mqtt = require("mqtt");
-// the broker you plan to connect to.
-// transport options:
-// 'mqtt', 'mqtts', 'tcp', 'tls', 'ws', or 'wss':
-const broker = "mqtts://public.cloud.shiftr.io";
-// client options:
-const options = {
-    clientId: "jRead",
-    username: "public",
-    password: "public"
-};
-// topic and message payload:
-let myTopic = "jReadings";
-
-// connect handler:
-function setupClient() {
-    // read all the subtopics:
-    client.subscribe(myTopic);
-    // set a handler for when new messages arrive:
-    client.on("message", readMqttMessage);
-}
-
-// new message handler:
-function readMqttMessage(topic, message) {
-    // message is a Buffer, so convert to a string:
-    let msgString = message.toString();
-    console.log(msgString);
-    // send it:
-    // sendToFirestore(msgString.ct, msgString.lux, msgString.time);
-}
-
-function storageResponse(error, headings, body) {
-    // print the responses from the server, if you need them:
-    // console.log(headings);
-    // console.log(body.toString());
-}
-
-let client = mqtt.connect(broker, options);
-client.on("connect", setupClient);
+// check the real-time
+// GET only data from asc order that corresponds to certain date
 
 // export the api to firebase cloud functions
 exports.app = functions.https.onRequest(app);
