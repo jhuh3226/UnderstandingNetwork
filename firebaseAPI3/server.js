@@ -74,7 +74,9 @@ function readMqttMessage(topic, message) {
     // console.log(`ct: ${msg.ct}`);
     // send it:
     // if (obj.uid == '3c71bf882b40' || obj.uid == '2462abba438c' || obj.uid == '2462abb1e310') sendToFirestore(uidData, luxData, ctData, timeStampData);
-    sendToFirestore(max4466Data, daokiData, timeStampData);
+    // sendToFirestore(max4466Data, daokiData, timeStampData);
+
+    realTime();
 }
 
 function storageResponse(error, headings, body) {
@@ -149,6 +151,22 @@ function sendToFirestore(max4466Value, daokiValue, time) {
 //         })
 //         .catch((err) => console.log(err));
 // }
+
+12
+
+function realTime() {
+  var date = new Date();
+  var year = date.getFullYear();
+  var month = ("0" + (date.getMonth() + 1)).substr(-2);
+  var day = ("0" + date.getDate()).substr(-2);
+  var hour = ("0" + date.getHours()).substr(-2);
+  var minutes = ("0" + date.getMinutes()).substr(-2);
+  var seconds = ("0" + date.getSeconds()).substr(-2);
+
+  console.log(`${year}-${month}-${day} ${hour}:${minutes}:${seconds}`);
+
+  return year + "-" + month + "-" + day + " " + hour + ":" + minutes + ":" + seconds;
+}
 
 const listener = server.listen(process.env.PORT || 8080, () => {
     console.log("Your app is listening on port " + listener.address().port);

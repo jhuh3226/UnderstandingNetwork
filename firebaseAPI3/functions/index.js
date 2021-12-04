@@ -140,28 +140,12 @@ app.post('/api/create/swcorner', (req, res) => {
 
 });
 
-// GET 
-// app.get('/api/read', (req, res) => {
-//     (async () => {
-//         // telling express to access to a collection and add new id and data
-//         try {
-
-//             return res.status(200).send(response);
-//         }
-
-//         catch (error) {
-//             console.log(error);
-//             return res.status(500).send(error);
-//         }
-//     })();
-// });
-
-// GET certain data
-app.get('/api/read/:id', (req, res) => {
+// GET single data by id
+app.get('/api/read/centerdecibeltest/id/:id', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
         try {
-            const document = db.collection('f008d1cb466c').doc(req.params.id);
+            const document = db.collection('CenterDecibelTest').doc(req.params.id);
             let uid = await document.get();
             let response = uid.data();
 
@@ -180,11 +164,11 @@ app.get('/api/read/:id', (req, res) => {
 
 // GET
 // When button pushed, get all the data from each category
-app.get('/api/read/swcorner/all', (req, res) => {
+app.get('/api/read/centerdecibeltest/all', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
         try {
-            let query = db.collection('SWcorner').orderBy("time", "asc");   // get all the data sorted by time
+            let query = db.collection('CenterDecibelTest').orderBy("time", "asc");   // get all the data sorted by time
             let response = [];
 
             await query.get().then(querySnapshot => {
@@ -194,8 +178,43 @@ app.get('/api/read/swcorner/all', (req, res) => {
                     const selectedItem = {
                         id: doc.id,
                         time: doc.data().time,
-                        lux: doc.data().lux,
-                        ct: doc.data().ct
+                        max4466: doc.data().max4466,
+                        daoki: doc.data().daoki
+                    };
+                    response.push(selectedItem);
+                }
+                return response; // each then should return a value
+            })
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+});
+
+// GET
+// get query range data
+app.get('/api/read/centerdecibeltest/range/:start/:end', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            let query = db.collection('CenterDecibelTest').where("time", ">=", req.params.start).where("time", "<=", req.params.end).orderBy("time", "asc");   // get all the data sorted by time
+            console.log(req.params.start);
+            console.log(req.params.end);
+            let response = [];
+
+            await query.get().then(querySnapshot => {
+                let docs = querySnapshot.docs;   // the result of the query
+
+                for (let doc of docs) {
+                    const selectedItem = {
+                        id: doc.id,
+                        time: doc.data().time,
+                        max4466: doc.data().max4466,
+                        daoki: doc.data().daoki
                     };
                     response.push(selectedItem);
                 }
@@ -217,6 +236,85 @@ function getLatest(req, res) {
     // query fireBase
     // when the response comes in, respond to the web client
 }
+
+// mqtt server ---------------------------------------------------------------------------------------------
+// subscribe to MQTT channels
+// when data arrives, send to FireBase
+
+// const firebaseLink = "https://us-central1-understandingnetwork-90aa1.cloudfunctions.net/app"
+
+// // include the MQTT library:
+// const mqtt = require("mqtt");
+// const { response } = require("express");
+// // the broker you plan to connect to.
+// // transport options:
+// // 'mqtt', 'mqtts', 'tcp', 'tls', 'ws', or 'wss':
+// const broker = "mqtts://public.cloud.shiftr.io";
+// // client options:
+// const options = {
+//     clientId: "ITPcenter",
+//     // clientId: "nodeClient",
+//     username: "public",
+//     password: "public"
+// };
+// // topic and message payload:
+// let myTopic = "ITPcenterDecibel";
+// // let myTopic = "light-readings";
+
+// let directory = null;
+// let sentID = 0;
+// let centerDecibelTestID = 0;
+
+// // connect handler:
+// function setupClient() {
+//     // read all the subtopics:
+//     client.subscribe(myTopic);
+//     // set a handler for when new messages arrive:
+//     client.on("message", readMqttMessage);
+// }
+
+// // new message handler:
+// function readMqttMessage(topic, message) {
+//     // message is a Buffer, so convert to a string:
+//     let msgString = message.toString();
+//     // get rid of double quotes in any of the strings:
+//     // msgString = msgString.replace(/['"]+/g, "");
+//     const obj = JSON.parse(msgString);
+//     console.log(obj);
+
+//     let max4466Data = obj.max4466Value;
+//     let daokiData = obj.daokiValue;
+//     let timeStampData = obj.timeStamp;
+
+//     sendToFirestore(max4466Data, daokiData, timeStampData);
+// }
+
+// let client = mqtt.connect(broker, options);
+// client.on("connect", setupClient);
+
+// function sendToFirestore(max4466Value, daokiValue, time) {
+//     console.log(`Sending max4466: ${max4466Value}, daoki: ${daokiValue}, time ${time}`);
+
+//         directory = 'centerdecibeltest';
+//         sentID = centerDecibelTestID;
+//         centerDecibelTestID++;
+
+//     fetch(firebaseLink + "/api/create/" + directory, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//             'id': sentID,
+//             'max4466': max4466Value,
+//             'daoki': daokiValue,
+//             'time': time
+//         }),
+//     })
+//         .then((res) => res.json())
+//         .then((data) => {
+//             // Do some stuff ...
+//         })
+//         .catch((err) => console.log(err));
+// }
 
 // check the real-time
 // GET only data from asc order that corresponds to certain date
