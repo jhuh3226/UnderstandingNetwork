@@ -80,7 +80,7 @@ JSONVar body;
 long lastSendTime = 0;
 
 // interval between requests, in minutes:
-float sendInterval = 2;
+float sendInterval = 1;
 // time before broker should release the will, in ms:
 long int keepAliveInterval =  sendInterval * 10 * 60 * 1000;
 // initialize the light sensor:
@@ -194,14 +194,14 @@ void loop() {
     //    Serial.print(avgDaokiValue);
     //    Serial.println();
 
-    Serial.print(max4466Value);
-    Serial.print(", ");
-    Serial.print(sumMax4466Value);
-    Serial.print(", ");
-    Serial.print(countMax4466);
-    Serial.print(", ");
-    Serial.print(avgMax4466Value);
-    Serial.println();
+    //    Serial.print(max4466Value);
+    //    Serial.print(", ");
+    //    Serial.print(sumMax4466Value);
+    //    Serial.print(", ");
+    //    Serial.print(countMax4466);
+    //    Serial.print(", ");
+    //    Serial.print(avgMax4466Value);
+    //    Serial.println();
 
     // take note of the time you make your request:
     previousTime = currentTime;

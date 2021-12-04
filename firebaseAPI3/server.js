@@ -21,20 +21,21 @@ const { response } = require("express");
 const broker = "mqtts://public.cloud.shiftr.io";
 // client options:
 const options = {
-    // clientId: "jRead",
-    clientId: "nodeClient",
+    clientId: "ITPcenter",
+    // clientId: "nodeClient",
     username: "public",
     password: "public"
 };
 // topic and message payload:
-// let myTopic = "jReadings";
-let myTopic = "light-readings";
+let myTopic = "ITPcenterDecibel";
+// let myTopic = "light-readings";
 
 let directory = null;
 let sentID = 0;
 let NWcornerID = 0;
 let NEcornerID = 0;
 let SWcornerID = 0;
+let centerDecibelTestID = 0;
 
 // connect handler:
 function setupClient() {
@@ -51,13 +52,17 @@ function readMqttMessage(topic, message) {
     // get rid of double quotes in any of the strings:
     // msgString = msgString.replace(/['"]+/g, "");
     const obj = JSON.parse(msgString);
-    // console.log(obj);
+    console.log(obj);
 
-    let uidData = obj.uid;
-    let luxData = obj.lux;
-    let ctData = obj.ct;
+    let max4466Data = obj.max4466Value;
+    let daokiData = obj.daokiValue;
     let timeStampData = obj.timeStamp;
-    // let timeStampData = new Date(time);
+
+    // let uidData = obj.uid;
+    // let luxData = obj.lux;
+    // let ctData = obj.ct;
+    // let timeStampData = obj.timeStamp;
+    // // let timeStampData = new Date(time);
 
     // NW_corner
     // if(uidData == '3c71bf882b40') console.log(`NW_corner-3c71bf882b40 Lux: ${luxData}`);
@@ -68,8 +73,8 @@ function readMqttMessage(topic, message) {
 
     // console.log(`ct: ${msg.ct}`);
     // send it:
-    if(obj.uid == '3c71bf882b40' || obj.uid == '2462abba438c' || obj.uid == '2462abb1e310') sendToFirestore(uidData, luxData, ctData, timeStampData);
-    // sendToFirestore(500, 500, 500);
+    // if (obj.uid == '3c71bf882b40' || obj.uid == '2462abba438c' || obj.uid == '2462abb1e310') sendToFirestore(uidData, luxData, ctData, timeStampData);
+    sendToFirestore(max4466Data, daokiData, timeStampData);
 }
 
 function storageResponse(error, headings, body) {
@@ -81,36 +86,20 @@ function storageResponse(error, headings, body) {
 let client = mqtt.connect(broker, options);
 client.on("connect", setupClient);
 
-// whenever there is new readings from the broker, do POST API request to firestore
-function sendToFirestore(uid, lux, ct, time) {
-    console.log(`Sending uid: ${uid}, lux: ${lux}, ct ${ct}, time ${time}`);
+function sendToFirestore(max4466Value, daokiValue, time) {
+    console.log(`Sending max4466: ${max4466Value}, daoki: ${daokiValue}, time ${time}`);
 
-    // nw
-    if (uid == '3c71bf882b40') {
-        directory = 'nwcorner';
-        sentID = NWcornerID;
-        NWcornerID++;
-    }
-    // sw
-    else if (uid == '2462abba438c') {
-        directory = 'swcorner';
-        sentID = SWcornerID;
-        SWcornerID++;
-    }
-    // ne
-    else if (uid == '2462abb1e310') {
-        directory = 'necorner';
-        sentID = NEcornerID;
-        NEcornerID++;
-    }
+        directory = 'centerdecibeltest';
+        sentID = centerDecibelTestID;
+        centerDecibelTestID++;
 
     fetch(firebaseLink + "/api/create/" + directory, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             'id': sentID,
-            'lux': lux,
-            'ct': ct,
+            'max4466': max4466Value,
+            'daoki': daokiValue,
             'time': time
         }),
     })
@@ -120,6 +109,46 @@ function sendToFirestore(uid, lux, ct, time) {
         })
         .catch((err) => console.log(err));
 }
+
+// whenever there is new readings from the broker, do POST API request to firestore
+// function sendToFirestore(uid, lux, ct, time) {
+//     console.log(`Sending uid: ${uid}, lux: ${lux}, ct ${ct}, time ${time}`);
+
+//     // nw
+//     if (uid == '3c71bf882b40') {
+//         directory = 'nwcorner';
+//         sentID = NWcornerID;
+//         NWcornerID++;
+//     }
+//     // sw
+//     else if (uid == '2462abba438c') {
+//         directory = 'swcorner';
+//         sentID = SWcornerID;
+//         SWcornerID++;
+//     }
+//     // ne
+//     else if (uid == '2462abb1e310') {
+//         directory = 'necorner';
+//         sentID = NEcornerID;
+//         NEcornerID++;
+//     }
+
+//     fetch(firebaseLink + "/api/create/" + directory, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//             'id': sentID,
+//             'lux': lux,
+//             'ct': ct,
+//             'time': time
+//         }),
+//     })
+//         .then((res) => res.json())
+//         .then((data) => {
+//             // Do some stuff ...
+//         })
+//         .catch((err) => console.log(err));
+// }
 
 const listener = server.listen(process.env.PORT || 8080, () => {
     console.log("Your app is listening on port " + listener.address().port);

@@ -42,6 +42,31 @@ app.get('/hello-world', (req, res) => {
 
 // POST time only after certain time
 
+// POST (create), to CenterDecibelTest
+// Have to seperate for each Uid 
+app.post('/api/create/centerdecibeltest', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            await db.collection('CenterDecibelTest').doc('/' + req.body.id + '/')
+                .create({
+                    max4466: req.body.max4466,
+                    daoki: req.body.daoki,
+                    time: req.body.time
+                    // createdAt: timestamp
+                })
+
+            return res.status(200).send('Data sent');
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+
+});
+
 // POST (create), to NEcorner
 // Have to seperate for each Uid 
 app.post('/api/create/necorner', (req, res) => {
