@@ -200,8 +200,9 @@ app.get('/api/read/centerdecibeltest/all', (req, res) => {
 app.get('/api/read/centerdecibeltest/range/:start/:end', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
+        // 1638655020/1638655080
         try {
-            let query = db.collection('CenterDecibelTest').where("time", ">=", req.params.start).where("time", "<=", req.params.end).orderBy("time", "asc");   // get all the data sorted by time
+            let query = db.collection('CenterDecibelTest').where("time", ">=", parseInt(req.params.start)).where("time", "<=", parseInt(req.params.end)).orderBy("time", "asc");   // get all the data sorted by time
             console.log(req.params.start);
             console.log(req.params.end);
             let response = [];
