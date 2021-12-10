@@ -21,21 +21,20 @@ const { response } = require("express");
 const broker = "mqtts://public.cloud.shiftr.io";
 // client options:
 const options = {
-    clientId: "ITPcenter",
+    clientId: "ITPjung",
     // clientId: "nodeClient",
     username: "public",
     password: "public"
 };
 // topic and message payload:
-let myTopic = "ITPcenterDecibel";
+let myTopic = "ITPDecibel";
 // let myTopic = "light-readings";
 
 let directory = null;
 let sentID = 0;
-let NWcornerID = 0;
-let NEcornerID = 0;
-let SWcornerID = 0;
-let centerDecibelTestID = 0;
+let centerDecibelID = 0;
+let codingLab = 0;
+let kitchen = 0;
 
 // connect handler:
 function setupClient() {
@@ -58,24 +57,11 @@ function readMqttMessage(topic, message) {
     let daokiData = obj.daokiValue;
     let timeStampData = obj.timeStamp;
 
-    // let uidData = obj.uid;
-    // let luxData = obj.lux;
-    // let ctData = obj.ct;
-    // let timeStampData = obj.timeStamp;
-    // // let timeStampData = new Date(time);
-
-    // NW_corner
-    // if(uidData == '3c71bf882b40') console.log(`NW_corner-3c71bf882b40 Lux: ${luxData}`);
-    // SW_corner
-    // else if(uidData == '2462abba438c') console.log(`SW_corner-2462abba438c Lux: ${luxData}`);
-    // NE_corner 
-    // else if(uidData == '2462abb1e310') console.log(`NE_corner-2462abb1e310 Lux: ${luxData}`);
-
-    // console.log(`ct: ${msg.ct}`);
     // send it:
     // if (obj.uid == '3c71bf882b40' || obj.uid == '2462abba438c' || obj.uid == '2462abb1e310') sendToFirestore(uidData, luxData, ctData, timeStampData);
-    // sendToFirestore(max4466Data, daokiData, timeStampData);
+    sendToFirestore(max4466Data, daokiData, timeStampData);
 
+    // get the realtime
     realTime();
 }
 
@@ -90,17 +76,33 @@ client.on("connect", setupClient);
 
 function sendToFirestore(max4466Value, daokiValue, time) {
     console.log(`Sending max4466: ${max4466Value}, daoki: ${daokiValue}, time ${time}`);
+    // uid of each device
+    // center:
+    // coding lab:
+    // kitchen:
 
-        directory = 'centerdecibeltest';
-        sentID = centerDecibelTestID;
-        centerDecibelTestID++;
+    // center
+    if (uid == ' ') {
+        directory = 'centerdecibel';
+        sentID = centerDecibelID;
+    }
+    // coding lab
+    if (uid == ' ') {
+        directory = 'codinglabdecibel';
+        sentID = codingLab;
+    }
+    // kitchen
+    // if (uid == '') {
+    //     directory = 'kitchendecibel';
+    //     sentID = kitchen;
+    // }
 
     fetch(firebaseLink + "/api/create/" + directory, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            'id': sentID,
-            'max4466': max4466Value,
+            'id': time,
+            // 'max4466': max4466Value,
             'daoki': daokiValue,
             'time': time
         }),
@@ -112,60 +114,20 @@ function sendToFirestore(max4466Value, daokiValue, time) {
         .catch((err) => console.log(err));
 }
 
-// whenever there is new readings from the broker, do POST API request to firestore
-// function sendToFirestore(uid, lux, ct, time) {
-//     console.log(`Sending uid: ${uid}, lux: ${lux}, ct ${ct}, time ${time}`);
-
-//     // nw
-//     if (uid == '3c71bf882b40') {
-//         directory = 'nwcorner';
-//         sentID = NWcornerID;
-//         NWcornerID++;
-//     }
-//     // sw
-//     else if (uid == '2462abba438c') {
-//         directory = 'swcorner';
-//         sentID = SWcornerID;
-//         SWcornerID++;
-//     }
-//     // ne
-//     else if (uid == '2462abb1e310') {
-//         directory = 'necorner';
-//         sentID = NEcornerID;
-//         NEcornerID++;
-//     }
-
-//     fetch(firebaseLink + "/api/create/" + directory, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//             'id': sentID,
-//             'lux': lux,
-//             'ct': ct,
-//             'time': time
-//         }),
-//     })
-//         .then((res) => res.json())
-//         .then((data) => {
-//             // Do some stuff ...
-//         })
-//         .catch((err) => console.log(err));
-// }
-
 12
 
 function realTime() {
-  var date = new Date();
-  var year = date.getFullYear();
-  var month = ("0" + (date.getMonth() + 1)).substr(-2);
-  var day = ("0" + date.getDate()).substr(-2);
-  var hour = ("0" + date.getHours()).substr(-2);
-  var minutes = ("0" + date.getMinutes()).substr(-2);
-  var seconds = ("0" + date.getSeconds()).substr(-2);
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = ("0" + (date.getMonth() + 1)).substr(-2);
+    var day = ("0" + date.getDate()).substr(-2);
+    var hour = ("0" + date.getHours()).substr(-2);
+    var minutes = ("0" + date.getMinutes()).substr(-2);
+    var seconds = ("0" + date.getSeconds()).substr(-2);
 
-  console.log(`${year}-${month}-${day} ${hour}:${minutes}:${seconds}`);
+    console.log(`${year}-${month}-${day} ${hour}:${minutes}:${seconds}`);
 
-  return year + "-" + month + "-" + day + " " + hour + ":" + minutes + ":" + seconds;
+    return year + "-" + month + "-" + day + " " + hour + ":" + minutes + ":" + seconds;
 }
 
 const listener = server.listen(process.env.PORT || 8080, () => {

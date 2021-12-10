@@ -64,8 +64,8 @@ String addressString = "";
 // char broker[] = "testjung1.cloud.shiftr.io";
 char broker[] = "public.cloud.shiftr.io";
 int port = 8883;
-char topic[] = "ITPcenterDecibel";
-const char willTopic[] = "ITPcenter/will";
+char topic[] = "ITPDecibel";
+const char willTopic[] = "ITPDecibel/will";
 String clientID = "ITPcenter";
 const char location[] = "floorCenter";
 

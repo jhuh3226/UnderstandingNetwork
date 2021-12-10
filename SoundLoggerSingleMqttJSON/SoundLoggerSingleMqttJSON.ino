@@ -59,8 +59,8 @@ String addressString = "";
 // char broker[] = "testjung1.cloud.shiftr.io";
 char broker[] = "public.cloud.shiftr.io";
 int port = 8883;
-char topic[] = "ITPcodingLabDecibel";
-const char willTopic[] = "ITPcodingLab/will";
+char topic[] = "ITPDecibel";
+const char willTopic[] = "ITPDecibel/will";
 String clientID = "ITPcenter";
 const char location[] = "codinglab";
 
@@ -114,7 +114,7 @@ void setup() {
   // you must know the size of the message before hand, and it must be set before connecting
   String willPayload = "sensor died";
   bool willRetain = true;
-  int willQos = 1;
+  int willQos = 2;
   // add location name to the client:
   clientID += location;
   mqttClient.setId(clientID);
