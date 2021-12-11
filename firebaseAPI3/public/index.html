@@ -11,9 +11,26 @@
 </head>
 
 <body>
-  <div id="remote">By clicking the button, you are fetching all the data from Firestore.</div><br>
-  <button onclick="hourlyChime()" id="btnRealTime">Real time</button><br>
-  <button id="btnFetch">Get all the recording</button>
+  <div id="remote">Choose time to play the chime song</div><br>
+  <!-- <button onclick="hourlyChime()" id="btnRealTime">Real time</button><br> -->
+  <!-- <form action="/action_page.php">
+    <label for="pick"></label>
+    <input type="date" id="pick" name="pick">
+    <input type="submit">
+  </form> <br> -->
+
+  <form>
+    <label>
+      <input type="date" name="time" min="2021-12-11" max="2021-12-31" required>
+      <span class="validity"></span>
+    </label>
+  
+    <p>
+      <button id="submitTime">Submit</button>
+    </p>
+  </form>
+
+  <button id="btnFetch">Get all</button>
   <div id="log">data</div>
   <script src="script.js"></script>
 </body>

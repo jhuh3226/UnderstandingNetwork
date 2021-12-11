@@ -21,14 +21,13 @@ const { response } = require("express");
 const broker = "mqtts://public.cloud.shiftr.io";
 // client options:
 const options = {
-    clientId: "ITPjung",
+    clientId: "ITPcenter",
     // clientId: "nodeClient",
     username: "public",
     password: "public"
 };
 // topic and message payload:
 let myTopic = "ITPDecibel";
-// let myTopic = "light-readings";
 
 let directory = null;
 let sentID = 0;
@@ -53,13 +52,13 @@ function readMqttMessage(topic, message) {
     const obj = JSON.parse(msgString);
     console.log(obj);
 
-    let max4466Data = obj.max4466Value;
+    let uidData = obj.uid;
     let daokiData = obj.daokiValue;
     let timeStampData = obj.timeStamp;
 
     // send it:
     // if (obj.uid == '3c71bf882b40' || obj.uid == '2462abba438c' || obj.uid == '2462abb1e310') sendToFirestore(uidData, luxData, ctData, timeStampData);
-    sendToFirestore(max4466Data, daokiData, timeStampData);
+    sendToFirestore(uidData, daokiData, timeStampData);
 
     // get the realtime
     realTime();
@@ -74,47 +73,44 @@ function storageResponse(error, headings, body) {
 let client = mqtt.connect(broker, options);
 client.on("connect", setupClient);
 
-function sendToFirestore(max4466Value, daokiValue, time) {
-    console.log(`Sending max4466: ${max4466Value}, daoki: ${daokiValue}, time ${time}`);
+function sendToFirestore(uid, daokiValue, time) {
+    console.log(`Sending daoki: ${daokiValue}, time ${time}`);
     // uid of each device
-    // center:
-    // coding lab:
-    // kitchen:
+    // center: "4c11aed07dfc"
+    // coding lab: "2462abb30df4"
+    // kitchen: "a4cf1221feb8"
 
     // center
-    if (uid == ' ') {
+    if (uid == '4c11aed07dfc') {
         directory = 'centerdecibel';
         sentID = centerDecibelID;
     }
     // coding lab
-    if (uid == ' ') {
+    if (uid == '2462abb30df4') {
         directory = 'codinglabdecibel';
         sentID = codingLab;
     }
     // kitchen
-    // if (uid == '') {
-    //     directory = 'kitchendecibel';
-    //     sentID = kitchen;
-    // }
+    if (uid == 'a4cf1221feb8') {
+        directory = 'kitchendecibel';
+        sentID = kitchen;
+    }
 
-    fetch(firebaseLink + "/api/create/" + directory, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            'id': time,
-            // 'max4466': max4466Value,
-            'daoki': daokiValue,
-            'time': time
-        }),
-    })
-        .then((res) => res.json())
-        .then((data) => {
-            // Do some stuff ...
-        })
-        .catch((err) => console.log(err));
+    // fetch(firebaseLink + "/api/create/" + directory, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //         'id': time,
+    //         'daoki': daokiValue,
+    //         'time': time
+    //     }),
+    // })
+    //     .then((res) => res.json())
+    //     .then((data) => {
+    //         // Do some stuff ...
+    //     })
+    //     .catch((err) => console.log(err));
 }
-
-12
 
 function realTime() {
     var date = new Date();

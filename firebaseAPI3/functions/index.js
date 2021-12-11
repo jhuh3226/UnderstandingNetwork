@@ -34,22 +34,21 @@ const db = admin.firestore();
 const cors = require("cors");
 app.use(cors({ origin: true }));
 
-// Routes
+/* ROUTE ---------------------------------------------------------------------------------------- */
 app.get('/hello-world', (req, res) => {
 
     return res.status(200).send('Hi!!!!!!');
 });
 
-// POST time only after certain time
-
-// POST (create), to CenterDecibel
+/* POST ----------------------------------------------------------------------------------------- */
+// POST to CENTER
 app.post('/api/create/centerdecibel', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
         try {
             await db.collection('CenterDecibel').doc('/' + req.body.id + '/')
                 .create({
-                    max4466: req.body.max4466,
+                    // max4466: req.body.max4466,
                     daoki: req.body.daoki,
                     time: req.body.time
                     // createdAt: timestamp
@@ -66,7 +65,8 @@ app.post('/api/create/centerdecibel', (req, res) => {
 
 });
 
-// POST (create), to Codinglab
+// ------------------------------------
+// POST to CODING LAB
 app.post('/api/create/codinglabdecibel', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
@@ -88,7 +88,8 @@ app.post('/api/create/codinglabdecibel', (req, res) => {
     })();
 });
 
-// POST (create), to Kitchen
+// ------------------------------------
+// POST to KITCHEN
 app.post('/api/create/kitchendecibel', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
@@ -110,8 +111,8 @@ app.post('/api/create/kitchendecibel', (req, res) => {
     })();
 });
 
-
-// GET single data by id
+/* GET SINGLE ----------------------------------------------------------------------------------- */
+// GET single data by id CENTER
 app.get('/api/read/centerdecibel/id/:id', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
@@ -133,8 +134,9 @@ app.get('/api/read/centerdecibel/id/:id', (req, res) => {
 
 });
 
-// GET
+/* GET ------------------------------------------------------------------------------------------ */
 // When button pushed, get all the data from each category
+// GET all CENTER data
 app.get('/api/read/centerdecibel/all', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
@@ -149,7 +151,6 @@ app.get('/api/read/centerdecibel/all', (req, res) => {
                     const selectedItem = {
                         id: doc.id,
                         time: doc.data().time,
-                        max4466: doc.data().max4466,
                         daoki: doc.data().daoki
                     };
                     response.push(selectedItem);
@@ -166,12 +167,76 @@ app.get('/api/read/centerdecibel/all', (req, res) => {
     })();
 });
 
-// GET
-// get query range data
+// ------------------------------------
+// GET all CODING LAB data
+app.get('/api/read/codinglabdecibel/all', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            let query = db.collection('CodingLabDecibel').orderBy("time", "asc");   // get all the data sorted by time
+            let response = [];
+
+            await query.get().then(querySnapshot => {
+                let docs = querySnapshot.docs;   // the result of the query
+
+                for (let doc of docs) {
+                    const selectedItem = {
+                        id: doc.id,
+                        time: doc.data().time,
+                        daoki: doc.data().daoki
+                    };
+                    response.push(selectedItem);
+                }
+                return response; // each then should return a value
+            })
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+});
+
+// ------------------------------------
+// GET all KITCHEN
+app.get('/api/read/kitchendecibel/all', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            let query = db.collection('KitchenDecibel').orderBy("time", "asc");   // get all the data sorted by time
+            let response = [];
+
+            await query.get().then(querySnapshot => {
+                let docs = querySnapshot.docs;   // the result of the query
+
+                for (let doc of docs) {
+                    const selectedItem = {
+                        id: doc.id,
+                        time: doc.data().time,
+                        daoki: doc.data().daoki
+                    };
+                    response.push(selectedItem);
+                }
+                return response; // each then should return a value
+            })
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+});
+
+/* GET QUERY ------------------------------------------------------------------------------------ */
+// get query range data for CENTER 
 app.get('/api/read/centerdecibel/range/:start/:end', (req, res) => {
     (async () => {
         // telling express to access to a collection and add new id and data
-        // 1638655020/1638655080
+        // such as 1638655020/1638655080
         try {
             let query = db.collection('CenterDecibel').where("time", ">=", parseInt(req.params.start)).where("time", "<=", parseInt(req.params.end)).orderBy("time", "asc");   // get all the data sorted by time
             console.log(req.params.start);
@@ -185,7 +250,6 @@ app.get('/api/read/centerdecibel/range/:start/:end', (req, res) => {
                     const selectedItem = {
                         id: doc.id,
                         time: doc.data().time,
-                        max4466: doc.data().max4466,
                         daoki: doc.data().daoki
                     };
                     response.push(selectedItem);
@@ -202,7 +266,74 @@ app.get('/api/read/centerdecibel/range/:start/:end', (req, res) => {
     })();
 });
 
-// GET all the decibel values for all the devices on the floor (currently 3)
+// ------------------------------------
+// get query range data for CODING LAB 
+app.get('/api/read/codinglabdecibel/range/:start/:end', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            let query = db.collection('CodingLabDecibel').where("time", ">=", parseInt(req.params.start)).where("time", "<=", parseInt(req.params.end)).orderBy("time", "asc");   // get all the data sorted by time
+            console.log(req.params.start);
+            console.log(req.params.end);
+            let response = [];
+
+            await query.get().then(querySnapshot => {
+                let docs = querySnapshot.docs;   // the result of the query
+
+                for (let doc of docs) {
+                    const selectedItem = {
+                        id: doc.id,
+                        time: doc.data().time,
+                        daoki: doc.data().daoki
+                    };
+                    response.push(selectedItem);
+                }
+                return response; // each then should return a value
+            })
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+});
+
+// ------------------------------------
+// get query range data for KITCHEN
+app.get('/api/read/kitchendecibel/range/:start/:end', (req, res) => {
+    (async () => {
+        // telling express to access to a collection and add new id and data
+        try {
+            let query = db.collection('KitchenDecibel').where("time", ">=", parseInt(req.params.start)).where("time", "<=", parseInt(req.params.end)).orderBy("time", "asc");   // get all the data sorted by time
+            console.log(req.params.start);
+            console.log(req.params.end);
+            let response = [];
+
+            await query.get().then(querySnapshot => {
+                let docs = querySnapshot.docs;   // the result of the query
+
+                for (let doc of docs) {
+                    const selectedItem = {
+                        id: doc.id,
+                        time: doc.data().time,
+                        daoki: doc.data().daoki
+                    };
+                    response.push(selectedItem);
+                }
+                return response; // each then should return a value
+            })
+            return res.status(200).send(response);
+        }
+
+        catch (error) {
+            console.log(error);
+            return res.status(500).send(error);
+        }
+    })();
+});
+
 
 function getLatest(req, res) {
     // get what the client wants from the request
@@ -210,9 +341,6 @@ function getLatest(req, res) {
     // query fireBase
     // when the response comes in, respond to the web client
 }
-
-// check the real-time
-// GET only data from asc order that corresponds to certain date
 
 // export the api to firebase cloud functions
 exports.app = functions.https.onRequest(app);

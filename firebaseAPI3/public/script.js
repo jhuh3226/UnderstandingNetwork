@@ -13,9 +13,8 @@ btnFetch.addEventListener('click', () => {
 });
 
 // on btn click get the latest data from the firestore
-// change centerdecibelTest to centerdecibel
 async function getData() {
-    const response = await fetch(firebaseLink + "/api/read/centerdecibelTest/all");
+    const response = await fetch(firebaseLink + "/api/read/centerdecibel/all");
     // const response = await fetch("")
     const data = await response.json();
     const stringData = JSON.stringify(data)
