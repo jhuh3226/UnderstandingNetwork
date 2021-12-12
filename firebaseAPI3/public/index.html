@@ -5,12 +5,18 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tone.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.32/Tone.js"
+    integrity="sha512-USKCQh+O8BX/a2K06xPNTwduhmQvN/m9FhkR7PRysCRlPoqIItl7Qz3xVTZC/oIHe6g5XvnLHDUgGpRMZZTmFQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- MQTT -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
   <link rel="stylesheet" href="style.css">
-  <title>Document</title>
+  <title>Ourly Clock</title>
 </head>
 
 <body>
+  <button onclick="startAudio()" id="start">Song</button><br>
   <div id="remote">Choose time to play the chime song</div><br>
   <!-- <button onclick="hourlyChime()" id="btnRealTime">Real time</button><br> -->
   <!-- <form action="/action_page.php">
@@ -24,7 +30,7 @@
       <input type="date" name="time" min="2021-12-11" max="2021-12-31" required>
       <span class="validity"></span>
     </label>
-  
+
     <p>
       <button id="submitTime">Submit</button>
     </p>
