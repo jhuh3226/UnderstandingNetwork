@@ -63,7 +63,7 @@ function convertToNote() {
 	else if (daokiData[i] >= 260 && daokiData[i] < 280) soundData[i] = "A5"
 	else if (daokiData[i] >= 280 && daokiData[i] < 300) soundData[i] = "B5"
 	else soundData[i] = "C6";
-	soundData.push("C4");
+	// soundData.push("C4");
 	i++;
 }
 
