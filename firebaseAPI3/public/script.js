@@ -1,5 +1,3 @@
-// const { Tone } = require("tone/build/esm/core/Tone");
-
 console.log("Page loaded, hello");
 
 // fetch reference
@@ -7,27 +5,29 @@ console.log("Page loaded, hello");
 
 const btnFetch = document.getElementById("btnFetch");
 const log = document.getElementById("log");
-// let centerData, kitchenData, codingLabData = []; 
-// let daokiCenter, daokiKitchen, daokiCodingLab = [];
+var dateControl = document.querySelector('input[type="datetime-local"]');
+
+let submittedTime = null;
+var submittedTimeStamp = null;
 
 let start = null;
 let end = null;
 
-let centerData = [];
-let daokiCenter = [];
+let centerData, kitchenData, codingLabData = [];
+let daokiCenter, daokiKitchen, daokiCodingLab = [];
 let soundCenter, soundKitchen, soundCodingLab = [];
 // convert daoki decibel number to note
-let soundData = [];
-const notes = [];
+let centerNotes, kitchenNotes, codingLabNotes = [];
 
-let centerDataIndex = 0;
+let centerDataIndex, kitchenDataIndex, codingLabDataIndex = 0;
 let index = 0;
-let i = 0;
+let i, j, k = 0;
 let timeIncre = 0;
 var indexNotes = 0;
 
 let playOn = false;
 let stillPlaying = true;
+let userRequestPlayOn = false;
 // let hourlyChimeOn = false;
 
 let major = [0, 2, 4, 5, 7, 9, 11, 12];
@@ -37,8 +37,9 @@ let scale = major;
 let pos = 0;
 let octave = 2;
 
-//create a synth and connect it to the main output (your speakers)
-const synth = new Tone.Synth().toDestination();
+// create a synth and connect it to the main output (your speakers)
+// https://tonejs.github.io/docs/14.7.77/PolySynth.html
+const synth = new Tone.PolySynth().toDestination();
 
 //play a middle 'C' for the duration of an 8th note
 const now = Tone.now()
@@ -53,28 +54,39 @@ btnFetch.addEventListener('click', () => {
     // getCenterData();
 });
 
-let isPlaying = false
+let isPlaying = false;
+
+submitTime.addEventListener('click', () => {
+    // console.log("User submited time");
+    // submittedTime = dateControl.value;
+    // submittedTimeStamp = new Date(submittedTime).getTime();
+    // userRequestPlayOn = true;
+    // // hourlyChimeSpecificDate(submittedTimeStamp);
+
+    // console.log(submittedTimeStamp);
+});
 
 // on clicking the ___btn, start the tone.js
 function startAudio() {
     Tone.start();
     console.log("Songs can now be played");
-    isPlaying = true
+    isPlaying = true;
 }
 
 function stopAudio() {
-    isPlaying = false
+    isPlaying = false;
 }
+
+Tone.Transport.scheduleOnce(playCenterNote, 0);
 
 // Second Mark
 let counterTime = 0
 setInterval(() => {
-    if (counterTime % 60 === 0) {
-        // might have to put if there is new out put
-        
+    if (counterTime % 360 === 0) {
+        // Tone.Transport.scheduleOnce(playCenterNote, 0);
         // if (playOn && !stillPlaying) {
         console.log("m") // sound to play (once)
-        playSounds();
+        // playSounds();
         // stillPlaying = true;
         // }
     }
@@ -88,9 +100,8 @@ setInterval(() => {
 setInterval(function () {
     //code goes here that will be run every 1 seconds.    
     realTime();
-    // if (playOn) playNote();
-    // setTimeout(playNote(), 15000)
-    // console.log(soundData);
+    // console.log(userRequestPlayOn);
+    // console.log(minutes);
 }, 1000);
 
 
@@ -98,11 +109,20 @@ setInterval(function () {
     hourlyChime();
 }, 1000);
 
+setInterval(function () {
+    // if(userRequestPlayOn) hourlyChimeSpecificDate(submittedTimeStamp);
+}, 1000);
 
-// setTimeout(playNote(), 15000);
+
+// setTimeout(playCenterNote(), 15000);
 
 /* ------------------------------------------------------------------------------------------ */
 var date, yer, month, day, hour, minuites, seconds, millis = 0;
+
+// iso8601string to timeStamp
+function convert(iso8601string) {
+    return "/Date(" + (new Date(iso8601string)).getTime();
+}
 
 // (move to server.js)
 // get the realtime
@@ -126,7 +146,7 @@ function realTime() {
 // referenced https://www.hashbangcode.com/article/convert-date-timestamp-javascript
 // https://www.epochconverter.com/
 function toTimestamp(year, month, day, hour, minute, second) {
-    var datum = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+    var datum = new Date(Date.UTC(year, month - 1, day-1, hour, minute, second));
     // console.log(datum.getTime() / 1000);
     return datum.getTime() / 1000;
 }
@@ -137,7 +157,7 @@ function toTimestamp(year, month, day, hour, minute, second) {
 // but for now test it console
 function hourlyChime() {
     // minutes == testMin.toString() 
-    // minutes =- "00"
+    // minutes == "00"
 
     if ((seconds == "00" || seconds == "30") && hour != "00") {
         console.log("It is sharp hour");
@@ -150,9 +170,9 @@ function hourlyChime() {
         console.log(`${queryStartTime}, ${queryEndTime}`);
 
         // GET the data in query
-        getCenterData(queryStartTime, queryEndTime).then(
+        getAllData(queryStartTime, queryEndTime).then(
             function () {
-                sortCenterDaokiVal().then(
+                sortAllDaokiVal().then(
                     function () {
                         convertToNote().then(
                             function () {
@@ -175,6 +195,32 @@ function hourlyChime() {
     }
 }
 
+function hourlyChimeSpecificDate(submittedTimeStamp) {
+    // console.log("Play user set time data");
+    // // reset all the index and list
+    // resetData();
+    // userRequestPlayOn = false;
+
+    // // from current timestamp - 3600 (hour ago) to current timestamp - 60 (one minute ago)
+    // var queryStartTime = submittedTimeStamp - 3600;
+    // var queryEndTime = submittedTimeStamp - 60;
+    // console.log(`${queryStartTime}, ${queryEndTime}`);
+
+    // // GET the data in query
+    // getAllData(queryStartTime, queryEndTime).then(
+    //     function () {
+    //         sortAllDaokiVal().then(
+    //             function () {
+    //                 convertToNote().then(
+    //                     function () {
+    //                     }
+    //                 );
+    //             }
+    //         );
+    //     }
+    // );
+}
+
 
 // c d e f g a b c d e f g a b c (8 or 15)
 /* STRUCTRUE */
@@ -183,6 +229,27 @@ function hourlyChime() {
 // distribute time according to it (to equalize the song length)
 
 /* ------------------------------------------------------------------------------------------ */
+// GET API to fetch data with range from all CENTER, KITCHEN, CODING LAB
+async function getAllData(start, end) {
+    const responseCenter = await fetch(firebaseLink + "/api/read/centerdecibel/range/" + start + "/" + end);
+    const rawCenter = await responseCenter.json();
+    centerData = await rawCenter;    // push the raw data to data list
+
+    const responseKitchen = await fetch(firebaseLink + "/api/read/kitchendecibel/range/" + start + "/" + end);
+    const rawKitchen = await responseKitchen.json();
+    kitchenData = await rawKitchen;    // push the raw data to data list
+
+    const responseCodingLab = await fetch(firebaseLink + "/api/read/codinglabdecibel/range/" + start + "/" + end);
+    const rawCodingLab = await responseCodingLab.json();
+    codingLabData = await rawCodingLab;    // push the raw data to data list
+
+    console.log("store data between two timestamp to centerData");
+    // console.log(centerData);
+    // console.log(kitchenData);
+    // console.log(codingLabData);
+    return "store data between two timestamp to each of the list";
+}
+
 // GET API to fetch data with range from CENTER
 async function getCenterData(start, end) {
     const response = await fetch(firebaseLink + "/api/read/centerdecibel/range/" + start + "/" + end);
@@ -217,44 +284,124 @@ async function getCodingLabData(start, end) {
 }
 
 /* ------------------------------------------------------------------------------------------ */
+async function sortAllDaokiVal() {
+    centerData.forEach(sortCenterDaokiValLoop);
+    kitchenData.forEach(sortKitchenDaokiValLoop);
+    codingLabData.forEach(sortCodingLabDaokiValLoop);
+    // console.log(daokiCenter);
+    // console.log(daokiKitchen);
+    // console.log(daokiCodingLab);
+    return "isolated daoki value from all data";
+}
+
 async function sortCenterDaokiVal() {
     centerData.forEach(sortCenterDaokiValLoop);
     console.log(daokiCenter);
-    return "sortedCenterDaokiVal";
+    return "isolated daoki value from centerData";
 }
 
 async function sortCenterDaokiValLoop() {
     daokiCenter.push((centerData[centerDataIndex].daoki));
     centerDataIndex++;
-    return "vistedAllTheLoops";
+    return "visted all the loops";
+}
+
+async function sortKitchenDaokiVal() {
+    kitchenData.forEach(sortKitchenDaokiValLoop);
+    console.log(daokiKitchen);
+    return "isolated daoki value from kitchenData";
+}
+
+async function sortKitchenDaokiValLoop() {
+    daokiKitchen.push((kitchenData[kitchenDataIndex].daoki));
+    kitchenDataIndex++;
+    return "visted all the loops";
+}
+
+async function sortCodingLabDaokiVal() {
+    codingLabData.forEach(sortCodingLabDaokiValLoop);
+    console.log(daokiCodingLab);
+    return "isolated daoki value from codingLabData";
+}
+
+async function sortCodingLabDaokiValLoop() {
+    daokiCodingLab.push((codingLabData[codingLabDataIndex].daoki));
+    codingLabDataIndex++;
+    return "visted all the loops";
 }
 
 async function convertToNote() {
-    daokiCenter.forEach(convertToNoteLoop);
-    console.log(soundData);
+    daokiCenter.forEach(convertCenterToNoteLoop);
+    daokiKitchen.forEach(convertKitchenToNoteLoop);
+    daokiCodingLab.forEach(convertCodingLabToNoteLoop);
+    console.log(centerNotes);
+    console.log(kitchenNotes);
+    console.log(codingLabNotes);
     // playOn = true;
-    return "convertedToNote"
+    return "converted all to note"
 }
 
-async function convertToNoteLoop() {
-    if (daokiCenter[i] >= 20 && daokiCenter[i] < 40) soundData[i] = "C4"
-    else if (daokiCenter[i] >= 40 && daokiCenter[i] < 60) soundData[i] = "D4"
-    else if (daokiCenter[i] >= 60 && daokiCenter[i] < 80) soundData[i] = "E4"
-    else if (daokiCenter[i] >= 80 && daokiCenter[i] < 100) soundData[i] = "F4"
-    else if (daokiCenter[i] >= 100 && daokiCenter[i] < 120) soundData[i] = "G4"
-    else if (daokiCenter[i] >= 120 && daokiCenter[i] < 140) soundData[i] = "A4"
-    else if (daokiCenter[i] >= 140 && daokiCenter[i] < 160) soundData[i] = "B4"
-    else if (daokiCenter[i] >= 160 && daokiCenter[i] < 180) soundData[i] = "C5"
-    else if (daokiCenter[i] >= 180 && daokiCenter[i] < 200) soundData[i] = "D5"
-    else if (daokiCenter[i] >= 200 && daokiCenter[i] < 220) soundData[i] = "E5"
-    else if (daokiCenter[i] >= 220 && daokiCenter[i] < 240) soundData[i] = "F5"
-    else if (daokiCenter[i] >= 240 && daokiCenter[i] < 260) soundData[i] = "G5"
-    else if (daokiCenter[i] >= 260 && daokiCenter[i] < 280) soundData[i] = "A5"
-    else if (daokiCenter[i] >= 280 && daokiCenter[i] < 300) soundData[i] = "B5"
-    else soundData[i] = "C6";
+async function convertCenterToNoteLoop() {
+    if (daokiCenter[i] >= 20 && daokiCenter[i] < 40) centerNotes[i] = "C4"
+    else if (daokiCenter[i] >= 40 && daokiCenter[i] < 60) centerNotes[i] = "D4"
+    else if (daokiCenter[i] >= 60 && daokiCenter[i] < 80) centerNotes[i] = "E4"
+    else if (daokiCenter[i] >= 80 && daokiCenter[i] < 100) centerNotes[i] = "F4"
+    else if (daokiCenter[i] >= 100 && daokiCenter[i] < 120) centerNotes[i] = "G4"
+    else if (daokiCenter[i] >= 120 && daokiCenter[i] < 140) centerNotes[i] = "A4"
+    else if (daokiCenter[i] >= 140 && daokiCenter[i] < 160) centerNotes[i] = "B4"
+    else if (daokiCenter[i] >= 160 && daokiCenter[i] < 180) centerNotes[i] = "C5"
+    else if (daokiCenter[i] >= 180 && daokiCenter[i] < 200) centerNotes[i] = "D5"
+    else if (daokiCenter[i] >= 200 && daokiCenter[i] < 220) centerNotes[i] = "E5"
+    else if (daokiCenter[i] >= 220 && daokiCenter[i] < 240) centerNotes[i] = "F5"
+    else if (daokiCenter[i] >= 240 && daokiCenter[i] < 260) centerNotes[i] = "G5"
+    else if (daokiCenter[i] >= 260 && daokiCenter[i] < 280) centerNotes[i] = "A5"
+    else if (daokiCenter[i] >= 280 && daokiCenter[i] < 300) centerNotes[i] = "B5"
+    else centerNotes[i] = "C6";
     i++;
     return "visted all the loops";
 }
+
+async function convertKitchenToNoteLoop() {
+    if (daokiKitchen[j] >= 20 && daokiKitchen[j] < 40) kitchenNotes[j] = "C4"
+    else if (daokiKitchen[j] >= 40 && daokiKitchen[j] < 60) kitchenNotes[j] = "D4"
+    else if (daokiKitchen[j] >= 60 && daokiKitchen[j] < 80) kitchenNotes[j] = "E4"
+    else if (daokiKitchen[j] >= 80 && daokiKitchen[j] < 100) kitchenNotes[j] = "F4"
+    else if (daokiKitchen[j] >= 100 && daokiKitchen[j] < 120) kitchenNotes[j] = "G4"
+    else if (daokiKitchen[j] >= 120 && daokiKitchen[j] < 140) kitchenNotes[j] = "A4"
+    else if (daokiKitchen[j] >= 140 && daokiKitchen[j] < 160) kitchenNotes[j] = "B4"
+    else if (daokiKitchen[j] >= 160 && daokiKitchen[j] < 180) kitchenNotes[j] = "C5"
+    else if (daokiKitchen[j] >= 180 && daokiKitchen[j] < 200) kitchenNotes[j] = "D5"
+    else if (daokiKitchen[j] >= 200 && daokiKitchen[j] < 220) kitchenNotes[j] = "E5"
+    else if (daokiKitchen[j] >= 220 && daokiKitchen[j] < 240) kitchenNotes[j] = "F5"
+    else if (daokiKitchen[j] >= 240 && daokiKitchen[j] < 260) kitchenNotes[j] = "G5"
+    else if (daokiKitchen[j] >= 260 && daokiKitchen[j] < 280) kitchenNotes[j] = "A5"
+    else if (daokiKitchen[j] >= 280 && daokiKitchen[j] < 300) kitchenNotes[j] = "B5"
+    else kitchenNotes[j] = "C6";
+    j++;
+    return "visted all the loops";
+}
+
+async function convertCodingLabToNoteLoop() {
+    if (daokiCodingLab[k] >= 20 && daokiCodingLab[k] < 40) codingLabNotes[k] = "C4"
+    else if (daokiCodingLab[k] >= 40 && daokiCodingLab[k] < 60) codingLabNotes[k] = "D4"
+    else if (daokiCodingLab[k] >= 60 && daokiCodingLab[k] < 80) codingLabNotes[k] = "E4"
+    else if (daokiCodingLab[k] >= 80 && daokiCodingLab[k] < 100) codingLabNotes[k] = "F4"
+    else if (daokiCodingLab[k] >= 100 && daokiCodingLab[k] < 120) codingLabNotes[k] = "G4"
+    else if (daokiCodingLab[k] >= 120 && daokiCodingLab[k] < 140) codingLabNotes[k] = "A4"
+    else if (daokiCodingLab[k] >= 140 && daokiCodingLab[k] < 160) codingLabNotes[k] = "B4"
+    else if (daokiCodingLab[k] >= 160 && daokiCodingLab[k] < 180) codingLabNotes[k] = "C5"
+    else if (daokiCodingLab[k] >= 180 && daokiCodingLab[k] < 200) codingLabNotes[k] = "D5"
+    else if (daokiCodingLab[k] >= 200 && daokiCodingLab[k] < 220) codingLabNotes[k] = "E5"
+    else if (daokiCodingLab[k] >= 220 && daokiCodingLab[k] < 240) codingLabNotes[k] = "F5"
+    else if (daokiCodingLab[k] >= 240 && daokiCodingLab[k] < 260) codingLabNotes[k] = "G5"
+    else if (daokiCodingLab[k] >= 260 && daokiCodingLab[k] < 280) codingLabNotes[k] = "A5"
+    else if (daokiCodingLab[k] >= 280 && daokiCodingLab[k] < 300) codingLabNotes[k] = "B5"
+    else daokiCodingLab[k] = "C6";
+    k++;
+    return "visted all the loops";
+}
+
+//----------
 
 // async function startPlay() {
 //     playOn = true;
@@ -262,31 +409,51 @@ async function convertToNoteLoop() {
 //     return "play the note"
 // }
 
-function playNote() {
-    // if (playOn) {
-    soundData.forEach(playNoteLoop);
-    console.log("finished playing")
-    // }
-    // return "finished playing"
-}
+// function playCenterNote() {
+//     // if (playOn) {
+//     centerNotes.forEach(playCenterNoteLoop);
+//     console.log("finished playing")
+//     // }
+//     // return "finished playing"
+// }
 
-function playNoteLoop() {
-    synth.triggerAttackRelease(soundData[index], "8n", now + timeIncre);
+// function playCenterNoteLoop() {
+//     synth.triggerAttackRelease(centerNotes[index], "8n", now + timeIncre);
 
-    timeIncre += 0.25;
-    index++;
-    // console.log(index);
-    // if (index >= soundData.length) playOn = false;
-}
+//     timeIncre += 0.25;
+//     index++;
+//     // if (index >= centerNotes.length) playOn = false;
+// }
 
 function resetData() {
-    centerDataIndex = 0;
-    i = 0;
     index = 0;
     indexNotes = 0;
+
+    // array storing JSON with different values
     centerData = [];
+    kitchenData = [];
+    codingLabData = [];
+
+    centerDataIndex = 0;
+    kitchenDataIndex = 0;
+    codingLabDataIndex = 0;
+
+    // array storing only daoki(sound sensor value) - output: number
     daokiCenter = [];
-    soundData = [];
+    daokiKitchen = [];
+    daokiCodingLab = [];
+
+    // note array (Ex. ["c4", "e4"])
+    centerNotes = [];
+    kitchenNotes = [];
+    codingLabNotes = [];
+
+    // index tracking note array
+    i = 0;
+    j = 0;
+    k = 0;
+
+
     Tone.Transport.start();
     root = 0;
     scale = major;
@@ -294,33 +461,12 @@ function resetData() {
     octave = 2;
 }
 
-const notesTest = ['C4', 'C4', 'C4', 'C4', 'C4', 'C4', 'C4', 'E4', 'C4', 'D4', 'C4', 'C4'];
-// const notes = soundData;
-
 Tone.Transport.bpm.value = 120;
-
-async function scheduleToneJS() {
-    Tone.Transport.scheduleRepeat(time => {
-        repeat(time);
-    }, '8n');
-    return "played all the songs";
-}
-
-function repeat(time) {
-    let note = soundData[indexNotes];
-
-    synth.triggerAttackRelease(note, '8n', time);
-    indexNotes++;
-    console.log(indexNotes);
-    if (indexNotes >= soundData.length) Tone.Transport.stop();
-}
-
 
 // ------- working tone.js code
 // have to figure out why there are less number of notes now
-// the point it, give some time for soundData array to fill up, 
+// the point it, give some time for centerNotes array to fill up, 
 // and if so, play the note 
-Tone.Transport.scheduleOnce(playNote, 0);
 
 function playSounds() {
     Tone.start();
@@ -331,38 +477,76 @@ function playSounds() {
     }
 }
 
-function playNote(time) {
-    let dur = "8n";
-    let pitch = root + scale[soundData[pos]] + 18 * octave;
+let duration = '8n';
+let durations = ["16n", "8n", "4n"];
+
+function playCenterNote(time) {
+    console.log("center notes playing");
+    // let dur = "8n";
+    let dur;
+    dur = durations[Math.floor(Math.random() * durations.length)];
+    // dur = duration;
+
+    let dur4n = "4n";
+    let dur8n = "8n";
+
+    let pitch = root + scale[centerNotes[pos]] + 18 * octave;
 
     let noteObject = Tone.Frequency(pitch, "midi");
-    console.log(pos);
-    // console.log(noteObject);
-    // console.log(pitch);
-    // console.log(root);
+    // console.log(pos);
     // synth.triggerAttackRelease(noteObject, dur);
-    synth.triggerAttackRelease(soundData[pos], dur);
+    // synth.set({ detune: -1200 });
+    synth.triggerAttackRelease(centerNotes[pos], dur);
+    synth.triggerAttackRelease(kitchenNotes[pos], dur);
+    synth.triggerAttackRelease(codingLabNotes[pos], dur);
 
-    Tone.Transport.scheduleOnce(playNote, "+" + dur);
+    Tone.Transport.scheduleOnce(playCenterNote, "+" + dur);
     pos++;
 
-    if (pos === soundData.length) {
+    if (pos === centerNotes.length) {
         Tone.Transport.pause(); pos = 0;
         // playOn = false;
     }
 }
 
-// function playTest() {
-//     console.log("playing test song");
-//     var synth = new Tone.Synth().toDestination();
-//     synth.triggerAttackRelease("C4", "8n", now);
-//     synth.triggerAttackRelease("E4", "8n", 0.25);
-//     synth.triggerAttackRelease("C4", "8n", 0.5);
+// function playKitchenNote(time) {
+//     console.log("kitchen notes playing");
+//     let dur = "8n";
+
+//     let pitch = root + scale[kitchenNotes[pos]] + 18 * octave;
+
+//     let noteObject = Tone.Frequency(pitch, "midi");
+//     // console.log(pos);
+//     // synth.triggerAttackRelease(noteObject, dur);
+//     synth.triggerAttackRelease([kitchenNotes[pos], kitchenNotes[pos] + 1], dur);
+
+//     Tone.Transport.scheduleOnce(playKitchenNote, "+" + dur);
+//     pos++;
+
+//     if (pos === kitchenNotes.length) {
+//         Tone.Transport.pause(); pos = 0;
+//         // playOn = false;
+//     }
 // }
 
-// var sequence = new Tone.Sequence(playNote, ["E4", "C4", "F#4", ["A4", "Bb3"]]);
+// const notesTest = ['C4', 'C4', 'C4', 'C4', 'C4', 'C4', 'C4', 'E4', 'C4', 'D4', 'C4', 'C4'];
+// const notes = centerNotes;
 
-// var seq = new Tone.Sequence(function(time, note){
-// 	console.log(note);
-// //straight quater notes
-// }, soundData[indexNotes], "8n");
+// async function scheduleToneJS() {
+//     Tone.Transport.scheduleRepeat(time => {
+//         repeat(time);
+//     }, '8n');
+//     return "played all the songs";
+// }
+
+// function repeat(time) {
+//     let note = centerNotes[indexNotes];
+
+//     synth.triggerAttackRelease(note, '8n', time);
+//     indexNotes++;
+//     console.log(indexNotes);
+//     if (indexNotes >= centerNotes.length) Tone.Transport.stop();
+// }
+
+
+

@@ -16,7 +16,7 @@
 </head>
 
 <body>
-  <button onclick="startAudio()" id="start">Song</button><br>
+  <button onclick="startAudio()" id="start">Ticking</button><br>
   <div id="remote">Choose time to play the chime song</div><br>
   <!-- <button onclick="hourlyChime()" id="btnRealTime">Real time</button><br> -->
   <!-- <form action="/action_page.php">
@@ -27,17 +27,17 @@
 
   <form>
     <label>
-      <input type="date" name="time" min="2021-12-11" max="2021-12-31" required>
+      <input type="datetime-local" name="time" min="2021-12-11" max="2021-12-31" required>
       <span class="validity"></span>
     </label>
-
     <p>
-      <button id="submitTime">Submit</button>
+      <!-- <button id="submitTime">Submit</button> -->
     </p>
   </form>
 
+  <button id="submitTime">Submit</button> <br>
   <button id="btnFetch">Get all</button>
-  <div id="log">data</div>
+  <div id="log"></div>
   <script src="script.js"></script>
 </body>
 
