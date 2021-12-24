@@ -12,31 +12,31 @@
   <!-- MQTT -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
   <link rel="stylesheet" href="style.css">
-  <title>Ourly Clock</title>
+  <title>OURly Clock</title>
 </head>
 
 <body>
-  <button onclick="startAudio()" id="start">Ticking</button><br>
-  <div id="remote">Choose time to play the chime song</div><br>
-  <!-- <button onclick="hourlyChime()" id="btnRealTime">Real time</button><br> -->
-  <!-- <form action="/action_page.php">
-    <label for="pick"></label>
-    <input type="date" id="pick" name="pick">
-    <input type="submit">
-  </form> <br> -->
+  <div id="mainTitle">OURly Clock</div><br>
+  <button onclick="startAudio()" id="start">.</button><br>
+  <div id="clock" class="clock" onload="showTime()"></div>
+  <div id="detail">Choose a date to play the closing song of the day</div><br>
+  <div id="info">
+    <a href="https://junghuh.notion.site/OURly-Clock-04c74e21eb534c2f9e8961a68add8338" target="_blank">info</a>
+  </div>
 
   <form>
     <label>
-      <input type="date" name="time" min="2021-12-11" max="2021-12-31" required>
-      <span class="validity"></span>
+      <span class="calendar">
+        <input id="cal" type="date" name="time" min="2021-12-11" required>
+      </span>
     </label>
     <p>
       <!-- <button id="submitTime">Submit</button> -->
     </p>
   </form>
 
-  <button id="submitTime">Submit</button> <br>
-  <button id="btnFetch">Get all</button>
+  <button id="submitTime">play</button> <br>
+  <!-- <button id="btnFetch">Get all</button> -->
   <div id="log"></div>
   <script src="script.js"></script>
 </body>

@@ -3,9 +3,17 @@ console.log("Page loaded, hello");
 // fetch reference
 // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 
-const btnFetch = document.getElementById("btnFetch");
+// const btnFetch = document.getElementById("btnFetch");
 const log = document.getElementById("log");
 var dateControl = document.querySelector('input[type="date"]');
+document.getElementById('cal').value = "2021-12-11";    // set the default value to the starting date
+
+// reference https://stackoverflow.com/questions/32540044/html-display-current-date/32540196
+let n = new Date();
+let y = n.getFullYear();
+let m = n.getMonth() + 1;
+let d = n.getDate() - 1;
+document.getElementById('cal').max = y + "-" + m + "-" + d;     // set the max date
 
 let submittedTime = null;
 var submittedTimeStamp = null;
@@ -53,33 +61,44 @@ const now = Tone.now()
 
 const firebaseLink = "https://us-central1-understandingnetwork-90aa1.cloudfunctions.net/app"
 
-btnFetch.addEventListener('click', () => {
-    console.log(centerData.length);
-    console.log(centerData);
-    console.log(daokiCenter);
-    log.innerHTML = daokiCenter;
-    // getCenterData();
-});
+// btnFetch.addEventListener('click', () => {
+//     console.log(centerData.length);
+//     console.log(centerData);
+//     console.log(daokiCenter);
+//     log.innerHTML = daokiCenter;
+// });
 
 let isPlaying = false;
+
+let submitTimeBtnClick = 0;
 
 submitTime.addEventListener('click', () => {
     console.log("User submited time");
     submittedTime = dateControl.value;
     submittedTimeStamp = new Date(submittedTime).getTime();
 
+    submitTimeBtnClick++;
+    if (submitTimeBtnClick % 2 == 1) {
+        // play the closing song only if the user chose the date
+        if (submittedTime != null) hourlyChimeSpecificDate(submittedTimeStamp);
+
+        console.log("stop");
+        submitTime.innerText = "stop";
+    }
+    else {
+        Tone.Transport.pause();
+
+        console.log("start");
+        submitTime.innerText = "play"
+    }
     // submittedTimeStamp is in GMT times, so we have to add 5 hours to be EST 00:00 and add 13 hours to be EST 08:00
     // so, it should add 13 hours (46800 epoc) for the start
     // 13 + 16 = 29 to reach 12:00 AM, and subtract 1 seconds
     // and 86,399 for the ending
 
-
-    // userRequestPlayOn = true;
-    hourlyChimeSpecificDate(submittedTimeStamp);
-
-    console.log(submittedTimeStamp / 1000);   // delete last three 0s
-    console.log(submittedTimeStamp / 1000 + 46800);   // starting at EST 8:00
-    console.log(submittedTimeStamp / 1000 + 104340);        // ending at EST 23:59:59
+    // console.log(submittedTimeStamp / 1000);   // delete last three 0s
+    // console.log(submittedTimeStamp / 1000 + 46800);   // starting at EST 8:00
+    // console.log(submittedTimeStamp / 1000 + 104340);        // ending at EST 23:59:59
 });
 
 // on clicking the ___btn, start the tone.js
@@ -93,8 +112,8 @@ function stopAudio() {
     isPlaying = false;
 }
 
-Tone.Transport.scheduleOnce(playHourlyNote, 0);
-Tone.Transport.scheduleOnce(playClosingSong, 0);
+// Tone.Transport.scheduleOnce(playHourlyNote, 0);
+// Tone.Transport.scheduleOnce(playClosingSong, 0);
 
 // Second Mark
 let counterTime = 0
@@ -113,7 +132,6 @@ setInterval(function () {
     //code goes here that will be run every 1 seconds.    
     realTime();
 }, 1000);
-
 
 setInterval(function () {
     hourlyChime();
@@ -167,7 +185,8 @@ function hourlyChime() {
     // (seconds == "00" || seconds == "30") && hour != "00"
     // minutes == "00" && hour != "00"
 
-    if (minutes == "00" && hour != "00") {
+    // chime every hour
+    if (seconds == "00" && minutes == "00" && hour != "00") {
         console.log("It is sharp hour");
         // reset all the index and list
         resetData();
@@ -193,12 +212,33 @@ function hourlyChime() {
     }
 
     // if it is 12 AM at night play the sound of the previous day (lasts for 360 seconds (6 minutes))
-    if (hour == "00" && minutes == "00") {
+    // seconds == "00" && minutes == "00" && hour == "00"
+    else if (seconds == "00" && minutes == "00" && hour == "00") {
+        console.log("Play ending song of the day");
+        resetWholdDayData();
+
+        var queryStartTime = parseInt(toTimestamp(year, month, day, "08", "00", "00")) + 18000;   // starting at EST 8:00
+        var queryEndTime = parseInt(toTimestamp(year, month, day, "23", "59", "59")) + 18000;     // ending at EST 23:59:59
+
+        console.log(queryStartTime);
+        console.log(queryEndTime);
+
+        // GET the data in query
+        getWholeDayData(queryStartTime, queryEndTime).then(
+            function () {
+                sortWholeDayDaokiVal().then(
+                    function () {
+                        convertWholeDayToNote().then(
+                        );
+                    }
+                );
+            }
+        );
     }
 }
 
 function hourlyChimeSpecificDate(submittedTimeStamp) {
-    console.log("Play user set date ending song");
+    console.log("Play chosen date's ending song");
 
     // reset all the index and list
     resetWholdDayData();
@@ -265,9 +305,9 @@ async function getWholeDayData(start, end) {
     wdCodingLabData = await rawCodingLab;    // push the raw data to data list
 
     console.log("store data between two timestamp to centerData");
-    console.log(wdCenterData);
-    console.log(wdKitchenData);
-    console.log(wdCodingLabData);
+    // console.log(wdCenterData);
+    // console.log(wdKitchenData);
+    // console.log(wdCodingLabData);
     return "store data between two timestamp to each of the list";
 }
 
@@ -357,9 +397,9 @@ async function convertToNote() {
     daokiCenter.forEach(convertCenterToNoteLoop);
     daokiKitchen.forEach(convertKitchenToNoteLoop);
     daokiCodingLab.forEach(convertCodingLabToNoteLoop);
-    console.log(centerNotes);
-    console.log(kitchenNotes);
-    console.log(codingLabNotes);
+    // console.log(centerNotes);
+    // console.log(kitchenNotes);
+    // console.log(codingLabNotes);
     // playOn = true;
     return "converted all to note"
 }
@@ -457,11 +497,11 @@ async function sortWholeDayCodingLabDaokiValLoop() {
 
 async function convertWholeDayToNote() {
     wdDaokiCenter.forEach(convertWholdDayCenterToNoteLoop);
-    // wdDaokiKitchen.forEach(convertWholdDayKitchenToNoteLoop);
-    // wdDaokiCodingLab.forEach(convertWholdDayCodingLabToNoteLoop);
-    console.log(wdCenterNotes);
-    // console.log(kitchenNotes);
-    // console.log(codingLabNotes);
+    wdDaokiKitchen.forEach(convertWholdDayKitchenToNoteLoop);
+    wdDaokiCodingLab.forEach(convertWholdDayCodingLabToNoteLoop);
+    // console.log(wdCenterNotes);
+    // console.log(wdKitchenNotes);
+    // console.log(wdCodingLabNotes);
     return "converted all to note"
 }
 
@@ -486,42 +526,42 @@ async function convertWholdDayCenterToNoteLoop() {
 }
 
 async function convertWholdDayKitchenToNoteLoop() {
-    if (daokiKitchen[j] >= 20 && daokiKitchen[j] < 40) kitchenNotes[j] = "C4"
-    else if (daokiKitchen[j] >= 40 && daokiKitchen[j] < 60) kitchenNotes[j] = "D4"
-    else if (daokiKitchen[j] >= 60 && daokiKitchen[j] < 80) kitchenNotes[j] = "E4"
-    else if (daokiKitchen[j] >= 80 && daokiKitchen[j] < 100) kitchenNotes[j] = "F4"
-    else if (daokiKitchen[j] >= 100 && daokiKitchen[j] < 120) kitchenNotes[j] = "G4"
-    else if (daokiKitchen[j] >= 120 && daokiKitchen[j] < 140) kitchenNotes[j] = "A4"
-    else if (daokiKitchen[j] >= 140 && daokiKitchen[j] < 160) kitchenNotes[j] = "B4"
-    else if (daokiKitchen[j] >= 160 && daokiKitchen[j] < 180) kitchenNotes[j] = "C5"
-    else if (daokiKitchen[j] >= 180 && daokiKitchen[j] < 200) kitchenNotes[j] = "D5"
-    else if (daokiKitchen[j] >= 200 && daokiKitchen[j] < 220) kitchenNotes[j] = "E5"
-    else if (daokiKitchen[j] >= 220 && daokiKitchen[j] < 240) kitchenNotes[j] = "F5"
-    else if (daokiKitchen[j] >= 240 && daokiKitchen[j] < 260) kitchenNotes[j] = "G5"
-    else if (daokiKitchen[j] >= 260 && daokiKitchen[j] < 280) kitchenNotes[j] = "A5"
-    else if (daokiKitchen[j] >= 280 && daokiKitchen[j] < 300) kitchenNotes[j] = "B5"
-    else kitchenNotes[j] = "C6";
-    j++;
+    if (wdDaokiKitchen[wdJ] >= 20 && wdDaokiKitchen[wdJ] < 40) wdKitchenNotes[wdJ] = "C4"
+    else if (wdDaokiKitchen[wdJ] >= 40 && wdDaokiKitchen[wdJ] < 60) wdKitchenNotes[wdJ] = "D4"
+    else if (wdDaokiKitchen[wdJ] >= 60 && wdDaokiKitchen[wdJ] < 80) wdKitchenNotes[wdJ] = "E4"
+    else if (wdDaokiKitchen[wdJ] >= 80 && wdDaokiKitchen[wdJ] < 100) wdKitchenNotes[wdJ] = "F4"
+    else if (wdDaokiKitchen[wdJ] >= 100 && wdDaokiKitchen[wdJ] < 120) wdKitchenNotes[wdJ] = "G4"
+    else if (wdDaokiKitchen[wdJ] >= 120 && wdDaokiKitchen[wdJ] < 140) wdKitchenNotes[wdJ] = "A4"
+    else if (wdDaokiKitchen[wdJ] >= 140 && wdDaokiKitchen[wdJ] < 160) wdKitchenNotes[wdJ] = "B4"
+    else if (wdDaokiKitchen[wdJ] >= 160 && wdDaokiKitchen[wdJ] < 180) wdKitchenNotes[wdJ] = "C5"
+    else if (wdDaokiKitchen[wdJ] >= 180 && wdDaokiKitchen[wdJ] < 200) wdKitchenNotes[wdJ] = "D5"
+    else if (wdDaokiKitchen[wdJ] >= 200 && wdDaokiKitchen[wdJ] < 220) wdKitchenNotes[wdJ] = "E5"
+    else if (wdDaokiKitchen[wdJ] >= 220 && wdDaokiKitchen[wdJ] < 240) wdKitchenNotes[wdJ] = "F5"
+    else if (wdDaokiKitchen[wdJ] >= 240 && wdDaokiKitchen[wdJ] < 260) wdKitchenNotes[wdJ] = "G5"
+    else if (wdDaokiKitchen[wdJ] >= 260 && wdDaokiKitchen[wdJ] < 280) wdKitchenNotes[wdJ] = "A5"
+    else if (wdDaokiKitchen[wdJ] >= 280 && wdDaokiKitchen[wdJ] < 300) wdKitchenNotes[wdJ] = "B5"
+    else wdDaokiKitchen[wdJ] = "C6";
+    wdJ++;
     return "visted all the loops";
 }
 
 async function convertWholdDayCodingLabToNoteLoop() {
-    if (daokiCodingLab[k] >= 20 && daokiCodingLab[k] < 40) codingLabNotes[k] = "C4"
-    else if (daokiCodingLab[k] >= 40 && daokiCodingLab[k] < 60) codingLabNotes[k] = "D4"
-    else if (daokiCodingLab[k] >= 60 && daokiCodingLab[k] < 80) codingLabNotes[k] = "E4"
-    else if (daokiCodingLab[k] >= 80 && daokiCodingLab[k] < 100) codingLabNotes[k] = "F4"
-    else if (daokiCodingLab[k] >= 100 && daokiCodingLab[k] < 120) codingLabNotes[k] = "G4"
-    else if (daokiCodingLab[k] >= 120 && daokiCodingLab[k] < 140) codingLabNotes[k] = "A4"
-    else if (daokiCodingLab[k] >= 140 && daokiCodingLab[k] < 160) codingLabNotes[k] = "B4"
-    else if (daokiCodingLab[k] >= 160 && daokiCodingLab[k] < 180) codingLabNotes[k] = "C5"
-    else if (daokiCodingLab[k] >= 180 && daokiCodingLab[k] < 200) codingLabNotes[k] = "D5"
-    else if (daokiCodingLab[k] >= 200 && daokiCodingLab[k] < 220) codingLabNotes[k] = "E5"
-    else if (daokiCodingLab[k] >= 220 && daokiCodingLab[k] < 240) codingLabNotes[k] = "F5"
-    else if (daokiCodingLab[k] >= 240 && daokiCodingLab[k] < 260) codingLabNotes[k] = "G5"
-    else if (daokiCodingLab[k] >= 260 && daokiCodingLab[k] < 280) codingLabNotes[k] = "A5"
-    else if (daokiCodingLab[k] >= 280 && daokiCodingLab[k] < 300) codingLabNotes[k] = "B5"
-    else daokiCodingLab[k] = "C6";
-    k++;
+    if (wdDaokiCodingLab[wdK] >= 20 && wdDaokiCodingLab[wdK] < 40) wdCodingLabNotes[wdK] = "C4"
+    else if (wdDaokiCodingLab[wdK] >= 40 && wdDaokiCodingLab[wdK] < 60) wdCodingLabNotes[wdK] = "D4"
+    else if (wdDaokiCodingLab[wdK] >= 60 && wdDaokiCodingLab[wdK] < 80) wdCodingLabNotes[wdK] = "E4"
+    else if (wdDaokiCodingLab[wdK] >= 80 && wdDaokiCodingLab[wdK] < 100) wdCodingLabNotes[wdK] = "F4"
+    else if (wdDaokiCodingLab[wdK] >= 100 && wdDaokiCodingLab[wdK] < 120) wdCodingLabNotes[wdK] = "G4"
+    else if (wdDaokiCodingLab[wdK] >= 120 && wdDaokiCodingLab[wdK] < 140) wdCodingLabNotes[wdK] = "A4"
+    else if (wdDaokiCodingLab[wdK] >= 140 && wdDaokiCodingLab[wdK] < 160) wdCodingLabNotes[wdK] = "B4"
+    else if (wdDaokiCodingLab[wdK] >= 160 && wdDaokiCodingLab[wdK] < 180) wdCodingLabNotes[wdK] = "C5"
+    else if (wdDaokiCodingLab[wdK] >= 180 && wdDaokiCodingLab[wdK] < 200) wdCodingLabNotes[wdK] = "D5"
+    else if (wdDaokiCodingLab[wdK] >= 200 && wdDaokiCodingLab[wdK] < 220) wdCodingLabNotes[wdK] = "E5"
+    else if (wdDaokiCodingLab[wdK] >= 220 && wdDaokiCodingLab[wdK] < 240) wdCodingLabNotes[wdK] = "F5"
+    else if (wdDaokiCodingLab[wdK] >= 240 && wdDaokiCodingLab[wdK] < 260) wdCodingLabNotes[wdK] = "G5"
+    else if (wdDaokiCodingLab[wdK] >= 260 && wdDaokiCodingLab[wdK] < 280) wdCodingLabNotes[wdK] = "A5"
+    else if (wdDaokiCodingLab[wdK] >= 280 && wdDaokiCodingLab[wdK] < 300) codingLabNotes[wdK] = "B5"
+    else daokiCodingLab[wdK] = "C6";
+    wdK++;
     return "visted all the loops";
 }
 
@@ -553,6 +593,7 @@ function resetData() {
     j = 0;
     k = 0;
 
+    Tone.Transport.scheduleOnce(playHourlyNote, 0);
     Tone.Transport.start();
     root = 0;
     scale = major;
@@ -587,6 +628,7 @@ function resetWholdDayData() {
     wdJ = 0;
     wdK = 0;
 
+    Tone.Transport.scheduleOnce(playClosingSong, 0);
     Tone.Transport.start();
     wdRoot = 0;
     scale = major;
@@ -614,32 +656,32 @@ let duration = '8n';
 let durations = ["16n", "8n", "4n"];
 
 function playHourlyNote(time) {
-    // console.log("center notes playing");
-    // // let dur = "8n";
-    // let dur;
-    // dur = durations[Math.floor(Math.random() * durations.length)];
-    // // dur = duration;
+    console.log("center notes playing");
+    // let dur = "8n";
+    let dur;
+    dur = durations[Math.floor(Math.random() * durations.length)];
+    // dur = duration;
 
-    // let dur4n = "4n";
-    // let dur8n = "8n";
+    let dur4n = "4n";
+    let dur8n = "8n";
 
-    // let pitch = root + scale[centerNotes[pos]] + 18 * octave;
+    let pitch = root + scale[centerNotes[pos]] + 18 * octave;
 
-    // let noteObject = Tone.Frequency(pitch, "midi");
-    // // console.log(pos);
-    // // synth.triggerAttackRelease(noteObject, dur);
-    // // synth.set({ detune: -1200 });
-    // synth.triggerAttackRelease(centerNotes[pos], dur);
-    // synth.triggerAttackRelease(kitchenNotes[pos], dur);
-    // synth.triggerAttackRelease(codingLabNotes[pos], dur);
+    let noteObject = Tone.Frequency(pitch, "midi");
+    // console.log(pos);
+    // synth.triggerAttackRelease(noteObject, dur);
+    // synth.set({ detune: -1200 });
+    synth.triggerAttackRelease(centerNotes[pos], dur);
+    synth.triggerAttackRelease(kitchenNotes[pos], dur);
+    synth.triggerAttackRelease(codingLabNotes[pos], dur);
 
-    // Tone.Transport.scheduleOnce(playHourlyNote, "+" + dur);
-    // pos++;
+    Tone.Transport.scheduleOnce(playHourlyNote, "+" + dur);
+    pos++;
 
-    // if (pos === centerNotes.length) {
-    //     Tone.Transport.pause(); pos = 0;
-    //     // playOn = false;
-    // }
+    if (pos === centerNotes.length) {
+        Tone.Transport.pause(); pos = 0;
+        // playOn = false;
+    }
 }
 
 function playClosingSong(time) {
@@ -659,6 +701,8 @@ function playClosingSong(time) {
     // synth.triggerAttackRelease(noteObject, dur);
     // synth.set({ detune: -1200 });
     synth.triggerAttackRelease(wdCenterNotes[wdPos], dur);
+    synth.triggerAttackRelease(wdKitchenNotes[wdPos], dur);
+    synth.triggerAttackRelease(wdCodingLabNotes[wdPos], dur);
 
     Tone.Transport.scheduleOnce(playClosingSong, "+" + dur);
     wdPos++;
@@ -670,6 +714,33 @@ function playClosingSong(time) {
 }
 
 /* ------------------------------------------------------------------------------------------ */
+// reference https://codepen.io/afarrar/pen/JRaEjP
+function showTime() {
+    var date = new Date();
+    var h = date.getHours(); // 0 - 23
+    var m = date.getMinutes(); // 0 - 59
+    var s = date.getSeconds(); // 0 - 59
+    // var session = "AM";
 
+    // if (h == 0) {
+    //     h = 12;
+    // }
 
+    // if (h > 12) {
+    //     h = h - 12;
+    //     session = "PM";
+    // }
 
+    h = (h < 10) ? "0" + h : h;
+    m = (m < 10) ? "0" + m : m;
+    s = (s < 10) ? "0" + s : s;
+
+    // var time = h + ":" + m + ":" + s + " " + session;
+    var time = h + ":" + m + ":" + s;
+    document.getElementById("clock").innerText = time;
+    document.getElementById("clock").textContent = time;
+
+    setTimeout(showTime, 1000);
+}
+
+showTime();

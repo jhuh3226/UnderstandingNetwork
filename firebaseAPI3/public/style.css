@@ -1,24 +1,106 @@
 body{
     font-family: 'Courier New', Courier, monospace;
+    background-color: black;
     /* margin:0px; */
 }
 
 #btnFetch{
     font-family: 'Courier New', Courier, monospace;
-    margin-bottom: 1%;
+    /* margin-bottom: 1%; */
 }
 
 #btnRealTime{
     font-family: 'Courier New', Courier, monospace;
-    margin-bottom: 1%;
+    /* margin-bottom: 1%; */
 }
 
 #submitTime{
     font-family: 'Courier New', Courier, monospace;
-    margin-bottom: 1%;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background-color: white;
+    border: none;
+    border-radius: 6%;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-right: 10px;
+    padding-left: 10px;
 }
 
 #start{
     font-family: 'Courier New', Courier, monospace;
-    margin-bottom: 1%;
+    background-color: black;
+    border: none;
+    /* margin-bottom: 1%; */
+}
+
+#mainTitle{
+    color: white;
+    font-size: 18px;
+    font-weight: 550;
+    letter-spacing: 2px;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+#detail{
+    color: white;
+    position: absolute;
+    top: 11%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    text-align: center;
+}
+
+#info{
+    color: white;
+    position: absolute;
+    top: 5%;
+    left: 93%;
+    transform: translateX(-50%) translateY(-50%);
+    text-align: center;
+}
+
+a:link {
+    color: white;
+    background-color: transparent;
+    text-decoration: none;
+  }
+  a:visited {
+    color: white;
+    background-color: transparent;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #00c3ff;
+    background-color: transparent;
+    text-decoration: underline;
+  }
+  a:active {
+    color: #00c3ff;
+    background-color: transparent;
+    text-decoration: underline;
+  }
+
+.calendar{
+    position: absolute;
+    top: 16%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.clock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    color: #00c3ff;
+    font-size: 70px;
+    text-align: center;
+    /* font-family: Orbitron; */
+    letter-spacing: 7px;
 }
